@@ -8,16 +8,20 @@ import org.hibernate.Transaction;
 
 import java.net.MalformedURLException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
+
+    SessionFactory sessionFactory = HibernateUtil.buildSessionFactory();
     public UserDaoHibernateImpl() {
     }
 
     @Override
     public void createUsersTable() {
-        try (SessionFactory sessionFactory = HibernateUtil.buildSessionFactory();
-             Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             session.beginTransaction();
             session.createNativeQuery(
                     """
@@ -29,13 +33,22 @@ public class UserDaoHibernateImpl implements UserDao {
             ).executeUpdate();
 
             session.getTransaction().commit();
+        } catch (Exception e) {
+            if (session != null) {
+                session.getTransaction().rollback();
+            }
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
     }
 
     @Override
     public void dropUsersTable() {
-        try (SessionFactory sessionFactory = HibernateUtil.buildSessionFactory();
-             Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             session.beginTransaction();
             session.createNativeQuery(
                     """
@@ -43,58 +56,104 @@ public class UserDaoHibernateImpl implements UserDao {
                             """
             ).executeUpdate();
             session.getTransaction().commit();
+        } catch (Exception e) {
+            if (session != null) {
+                session.getTransaction().rollback();
+            }
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
     }
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        try (SessionFactory sessionFactory = HibernateUtil.buildSessionFactory();
-             Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             session.beginTransaction();
 
             session.save(new User(name, lastName, age));
 
             session.getTransaction().commit();
+        } catch (Exception e) {
+            if (session != null) {
+                session.getTransaction().rollback();
+            }
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
     }
 
     @Override
     public void removeUserById(long id) {
-        try (SessionFactory sessionFactory = HibernateUtil.buildSessionFactory();
-             Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             session.beginTransaction();
 
             User user = session.get(User.class, id);
             session.delete(user);
 
             session.getTransaction().commit();
+        } catch (Exception e) {
+            if (session != null) {
+                session.getTransaction().rollback();
+            }
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
     }
 
     @Override
     public List<User> getAllUsers() {
-        try (SessionFactory sessionFactory = HibernateUtil.buildSessionFactory();
-             Session session = sessionFactory.openSession()) {
+        Session session = null;
+        List<User> users = new ArrayList<>();
+        try {
+            session = sessionFactory.openSession();
             session.beginTransaction();
 
-            List<User> users = session.createQuery("select u from User u", User.class)
+            users = session.createQuery("select u from User u", User.class)
                     .list();
 
             session.getTransaction().commit();
+        } catch (Exception e) {
+            if (session != null) {
+                session.getTransaction().rollback();
+            }
+        } finally {
+            if (session != null) {
+                session.close();
+            }
             return users;
         }
+
     }
 
     @Override
     public void cleanUsersTable() {
-        try (SessionFactory sessionFactory = HibernateUtil.buildSessionFactory();
-             Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             session.beginTransaction();
 
             session.createNativeQuery("delete from user where" +
                     " id is not null ;").executeUpdate();
 
             session.getTransaction().commit();
+        } catch (Exception e) {
+            if (session != null) {
+                session.getTransaction().rollback();
+            }
+        } finally {
+            if (session != null) {
+                session.close();
+            }
         }
     }
 }
